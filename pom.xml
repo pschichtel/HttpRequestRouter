@@ -115,7 +115,7 @@
                         <include>**/*.java</include>
                     </includes>
                     <properties>
-                        <owner>Cube Island</owner>
+                        <owner>Phillip Schichtel</owner>
                     </properties>
                     <mapping>
                         <java>SLASHSTAR_STYLE</java>
