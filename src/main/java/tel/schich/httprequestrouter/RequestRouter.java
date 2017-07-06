@@ -42,7 +42,7 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
             if (path.charAt(routeOffset) == RouteParser.SEPARATOR) {
                 routeOffset++;
             }
-            Optional<RouteTree.Match<TMethod, TRequest, TResponse>> optionalMatch = routeTree.matchChild(path, routeOffset).getMatch();
+            Optional<RouteTree.Match<TMethod, TRequest, TResponse>> optionalMatch = routeTree.matchChild(path, routeOffset);
             if (optionalMatch.isPresent()) {
                 RouteTree.Match<TMethod, TRequest, TResponse> match = optionalMatch.get();
                 routeOffset = match.endedAt;

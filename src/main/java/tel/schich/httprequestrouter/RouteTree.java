@@ -1,3 +1,25 @@
+/*
+ * The MIT License
+ * Copyright © 2017 Phillip Schichtel
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package tel.schich.httprequestrouter;
 
 import tel.schich.httprequestrouter.segment.SegmentOrder;
@@ -17,19 +39,19 @@ public class RouteTree<TMethod, TRequest, TResponse> {
         this.handlers = handlers;
     }
 
-    public MatchResult matchChild(String path, int from) {
+    public Optional<Match<TMethod, TRequest, TResponse>> matchChild(String path, int from) {
         if (from >= path.length()) {
-            return NoMatch.NO_MATCH;
+            return Optional.empty();
         }
 
         for (RouteSegment<TMethod, TRequest, TResponse> next : children) {
             int match = next.segment.matches(path, from);
             if (match > -1) {
-                return new Match<>(next.subTree, match);
+                return Optional.of(new Match<>(next.subTree, match));
             }
         }
 
-        return NoMatch.NO_MATCH;
+        return Optional.empty();
     }
 
     public Optional<Function<TRequest, TResponse>> getHandler(TMethod method) {
@@ -41,24 +63,7 @@ public class RouteTree<TMethod, TRequest, TResponse> {
         return new RouteTree<>(order, new TreeSet<>(order), Collections.emptyMap());
     }
 
-    public static abstract class MatchResult {
-
-        public boolean hasMatched() {
-            return this instanceof RouteTree.Match<?, ?, ?>;
-        }
-
-        @SuppressWarnings("unchecked")
-        public <TMethod, TRequest, TResponse> Optional<Match<TMethod, TRequest, TResponse>> getMatch() {
-            if (hasMatched()) {
-                Match<TMethod, TRequest, TResponse> match = (Match<TMethod, TRequest, TResponse>) this;
-                Optional.of(match);
-            }
-            return Optional.empty();
-        }
-
-    }
-
-    public static class Match<TMethod, TRequest, TResponse> extends MatchResult {
+    public static class Match<TMethod, TRequest, TResponse> {
         public final RouteTree<TMethod, TRequest, TResponse> child;
         public final int endedAt;
 
@@ -66,9 +71,5 @@ public class RouteTree<TMethod, TRequest, TResponse> {
             this.child = child;
             this.endedAt = endedAt;
         }
-    }
-
-    public static class NoMatch extends MatchResult {
-        public static final MatchResult NO_MATCH = new NoMatch();
     }
 }
