@@ -20,7 +20,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package tel.schich.httprequestrouter;
+package tel.schich.httprequestrouter.segment.factory;
 
-public class HttpRequestRouter {
+import tel.schich.httprequestrouter.segment.Segment;
+import tel.schich.httprequestrouter.segment.StaticSegment;
+
+public class StaticSegmentFactory implements SegmentFactory {
+    @Override
+    public Segment toSegment(String raw) {
+        return new StaticSegment(raw);
+    }
 }

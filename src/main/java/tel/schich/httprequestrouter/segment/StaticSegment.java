@@ -25,6 +25,9 @@ package tel.schich.httprequestrouter.segment;
 import java.util.Objects;
 
 public class StaticSegment implements Segment {
+
+    public static final StaticSegment EMPTY = new StaticSegment("");
+
     private final String content;
 
     public StaticSegment(String content) {
@@ -51,5 +54,18 @@ public class StaticSegment implements Segment {
     @Override
     public String toString() {
         return "StaticSegment(" + content + ')';
+    }
+
+    @Override
+    public boolean canHaveChildren() {
+        return true;
+    }
+
+    @Override
+    public int matches(String path, int start) {
+        if (path.startsWith(content, start)) {
+            return start + content.length();
+        }
+        return -1;
     }
 }

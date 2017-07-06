@@ -29,4 +29,14 @@ public class RootSegment implements Segment {
     public String toString() {
         return "RootSegment";
     }
+
+    @Override
+    public boolean canHaveChildren() {
+        return true;
+    }
+
+    @Override
+    public int matches(String path, int start) {
+        return -1;
+    }
 }

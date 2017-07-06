@@ -23,7 +23,6 @@
 package tel.schich.httprequestrouter.segment;
 
 public interface Segment {
-    default boolean isLeaf() {
-        return true;
-    }
+    boolean canHaveChildren();
+    int matches(String path, int start);
 }

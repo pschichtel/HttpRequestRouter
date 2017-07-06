@@ -23,14 +23,17 @@
 package tel.schich.httprequestrouter;
 
 import org.junit.jupiter.api.Test;
+import tel.schich.httprequestrouter.segment.SegmentOrder;
+import tel.schich.httprequestrouter.segment.StaticSegment;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class HttpRequestRouterTest {
+class RequestRouterTest {
 
     @Test
     void testRouter() {
-        HttpRequestRouter router = new HttpRequestRouter();
+        RequestRouter<Object, Object, Object> router =
+                new RequestRouter<>(RouteTree.create(SegmentOrder.order(StaticSegment.class)));
         assertNotNull(router);
     }
 }

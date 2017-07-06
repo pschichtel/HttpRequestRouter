@@ -24,7 +24,7 @@ package tel.schich.httprequestrouter;
 
 import tel.schich.httprequestrouter.segment.RootSegment;
 import tel.schich.httprequestrouter.segment.Segment;
-import tel.schich.httprequestrouter.segment.factory.DefaultFactory;
+import tel.schich.httprequestrouter.segment.factory.StaticSegmentFactory;
 import tel.schich.httprequestrouter.segment.factory.SegmentFactory;
 
 import javax.validation.constraints.NotNull;
@@ -33,7 +33,7 @@ import java.util.List;
 
 public class RouteParser {
     public static final char SEPARATOR = '/';
-    public static final SegmentFactory DEFAULT_FACTORY = new DefaultFactory();
+    public static final SegmentFactory DEFAULT_FACTORY = new StaticSegmentFactory();
     private static final char ESCAPE = '\\';
 
     @NotNull

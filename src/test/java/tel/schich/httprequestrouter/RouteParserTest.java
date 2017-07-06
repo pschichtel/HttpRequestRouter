@@ -23,7 +23,6 @@
 package tel.schich.httprequestrouter;
 
 import org.junit.jupiter.api.Test;
-import tel.schich.httprequestrouter.segment.RootSegment;
 import tel.schich.httprequestrouter.segment.Segment;
 import tel.schich.httprequestrouter.segment.StaticSegment;
 
@@ -33,6 +32,7 @@ import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 import static tel.schich.httprequestrouter.RouteParser.DEFAULT_FACTORY;
 import static tel.schich.httprequestrouter.RouteParser.parseRoute;
+import static tel.schich.httprequestrouter.segment.RootSegment.ROOT;
 
 class RouteParserTest {
 
@@ -46,11 +46,11 @@ class RouteParserTest {
 
     @Test
     void testParseRoute() {
-        assertEquals(route(RootSegment.ROOT), parseRoute("/", DEFAULT_FACTORY));
-        assertEquals(route(RootSegment.ROOT, seg("a")), parseRoute("/a", DEFAULT_FACTORY));
-        assertEquals(route(RootSegment.ROOT, seg("a"), seg("b")), parseRoute("/a/b", DEFAULT_FACTORY));
-        assertEquals(route(RootSegment.ROOT, seg("a/b")), parseRoute("/a\\/b", DEFAULT_FACTORY));
-        assertEquals(route(RootSegment.ROOT, seg("a\\b")), parseRoute("/a\\b", DEFAULT_FACTORY));
+        assertEquals(route(ROOT), parseRoute("/", DEFAULT_FACTORY));
+        assertEquals(route(ROOT, seg("a")), parseRoute("/a", DEFAULT_FACTORY));
+        assertEquals(route(ROOT, seg("a"), seg("b")), parseRoute("/a/b", DEFAULT_FACTORY));
+        assertEquals(route(ROOT, seg("a/b")), parseRoute("/a\\/b", DEFAULT_FACTORY));
+        assertEquals(route(ROOT, seg("a\\b")), parseRoute("/a\\b", DEFAULT_FACTORY));
     }
 
 }
