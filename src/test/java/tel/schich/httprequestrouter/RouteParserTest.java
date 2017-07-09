@@ -50,7 +50,13 @@ class RouteParserTest {
         assertEquals(route(ROOT, seg("a")), parseRoute("/a", DEFAULT_FACTORY));
         assertEquals(route(ROOT, seg("a"), seg("b")), parseRoute("/a/b", DEFAULT_FACTORY));
         assertEquals(route(ROOT, seg("a/b")), parseRoute("/a\\/b", DEFAULT_FACTORY));
+        assertEquals(route(ROOT, seg("a\\"), seg("b")), parseRoute("/a\\\\/b", DEFAULT_FACTORY));
         assertEquals(route(ROOT, seg("a\\b")), parseRoute("/a\\b", DEFAULT_FACTORY));
+    }
+
+    @Test
+    void testRouteValidation() {
+        assertThrows(IllegalArgumentException.class, () -> parseRoute("a", DEFAULT_FACTORY));
     }
 
 }

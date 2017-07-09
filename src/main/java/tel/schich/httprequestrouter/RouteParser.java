@@ -22,7 +22,6 @@
  */
 package tel.schich.httprequestrouter;
 
-import tel.schich.httprequestrouter.segment.RootSegment;
 import tel.schich.httprequestrouter.segment.Segment;
 import tel.schich.httprequestrouter.segment.factory.StaticSegmentFactory;
 import tel.schich.httprequestrouter.segment.factory.SegmentFactory;
@@ -31,50 +30,60 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
+import static tel.schich.httprequestrouter.segment.RootSegment.ROOT;
+
 public class RouteParser {
     public static final char SEPARATOR = '/';
     public static final SegmentFactory DEFAULT_FACTORY = new StaticSegmentFactory();
     private static final char ESCAPE = '\\';
+    private static final List<Segment> ROOT_ROUTE = singletonList(ROOT);
 
     @NotNull
     public static List<Segment> parseRoute(@NotNull String route, @NotNull SegmentFactory factory) {
 
-        List<Segment> segments = new ArrayList<>();
+        if (route.charAt(0) != SEPARATOR) {
+            throw new IllegalArgumentException("Routes must start with a " + SEPARATOR);
+        }
 
-        int len = route.length();
-        int i = 0;
+        if (route.length() == 1) {
+            return ROOT_ROUTE;
+        }
+
+        List<Segment> segments = new ArrayList<>(ROOT_ROUTE);
+
+        int end = route.length();
+        // initialize with 1 to skip leading slash
+        int i = 1;
         int start;
         boolean escaped;
         char current;
-        while (i < len) {
+
+        while (i < end) {
             start = i;
             escaped = false;
-            while (i < len) {
+
+            while (i < end) {
                 current = route.charAt(i);
-                if (current == ESCAPE && i + i < len && route.charAt(i + 1) == SEPARATOR) {
+                if (current == ESCAPE && i + 1 < end) {
                     i += 2;
                     escaped = true;
                 } else if (current == SEPARATOR) {
                     break;
                 } else {
-
                     i++;
                 }
             }
 
-            if (start == 0 && (i - start) == 0) {
-                segments.add(RootSegment.ROOT);
+            String content;
+            if (escaped) {
+                content = unescape(route, start, i);
             } else {
-                String content;
-                if (escaped) {
-                    content = unescape(route, start, i);
-                } else {
-                    content = route.substring(start, i);
-                }
-
-                segments.add(factory.toSegment(content));
+                content = route.substring(start, i);
             }
             i++;
+
+            segments.add(factory.toSegment(content));
         }
 
         return segments;
