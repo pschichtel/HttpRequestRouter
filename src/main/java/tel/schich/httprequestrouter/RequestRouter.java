@@ -22,14 +22,25 @@
  */
 package tel.schich.httprequestrouter;
 
+import tel.schich.httprequestrouter.segment.Segment;
+import tel.schich.httprequestrouter.segment.SegmentOrder;
+import tel.schich.httprequestrouter.segment.factory.SegmentFactory;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 public class RequestRouter<TMethod, TRequest, TResponse> {
 
+    private final SegmentFactory segmentFactory;
     private final RouteTree<TMethod, TRequest, TResponse> routeTree;
 
-    public RequestRouter(RouteTree<TMethod, TRequest, TResponse> routeTree) {
+    public RequestRouter(SegmentFactory segmentFactory, SegmentOrder<TMethod, TRequest, TResponse> order) {
+        this(segmentFactory, RouteTree.create(order));
+    }
+
+    public RequestRouter(SegmentFactory segmentFactory, RouteTree<TMethod, TRequest, TResponse> routeTree) {
+        this.segmentFactory = segmentFactory;
         this.routeTree = routeTree;
     }
 
@@ -41,12 +52,15 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
             // skip char if it's a slash
             if (path.charAt(routeOffset) == RouteParser.SEPARATOR) {
                 routeOffset++;
-            }
-            Optional<RouteTree.Match<TMethod, TRequest, TResponse>> optionalMatch = routeTree.matchChild(path, routeOffset);
-            if (optionalMatch.isPresent()) {
-                RouteTree.Match<TMethod, TRequest, TResponse> match = optionalMatch.get();
-                routeOffset = match.endedAt;
-                subTree = match.child;
+            } else {
+                Optional<RouteTree.Match<TMethod, TRequest, TResponse>> optionalMatch = routeTree.matchChild(path, routeOffset);
+                if (optionalMatch.isPresent()) {
+                    RouteTree.Match<TMethod, TRequest, TResponse> match = optionalMatch.get();
+                    routeOffset = match.endedAt;
+                    subTree = match.child;
+                } else {
+                    break;
+                }
             }
         }
 
@@ -55,6 +69,15 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
         }
 
         return Optional.empty();
+    }
+
+    public RequestRouter<TMethod, TRequest, TResponse> withSegmentFactory(SegmentFactory factory) {
+        return new RequestRouter<>(factory, routeTree);
+    }
+
+    public RequestRouter<TMethod, TRequest, TResponse> withHandler(TMethod method, String route, Function<TRequest, TResponse> handler) {
+        List<Segment> parsedRoute = RouteParser.parseRoute(route, segmentFactory);
+        return new RequestRouter<>(segmentFactory, routeTree.addHandler(method, parsedRoute, handler));
     }
 
 }

@@ -24,10 +24,10 @@ package tel.schich.httprequestrouter.segment;
 
 import java.util.Objects;
 
-public class WildcardSegment implements NamedSegment {
+public class UnboundedSegment implements NamedSegment {
     private final String name;
 
-    public WildcardSegment(String name) {
+    public UnboundedSegment(String name) {
         this.name = name;
     }
 
@@ -49,8 +49,8 @@ public class WildcardSegment implements NamedSegment {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof WildcardSegment)) return false;
-        WildcardSegment that = (WildcardSegment) o;
+        if (!(o instanceof UnboundedSegment)) return false;
+        UnboundedSegment that = (UnboundedSegment) o;
         return Objects.equals(name, that.name);
     }
 
@@ -61,6 +61,6 @@ public class WildcardSegment implements NamedSegment {
 
     @Override
     public String toString() {
-        return "WildcardSegment(" + name + ')';
+        return "UnboundedSegment(" + name + ')';
     }
 }

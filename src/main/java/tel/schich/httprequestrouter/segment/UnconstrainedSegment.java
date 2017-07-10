@@ -22,21 +22,52 @@
  */
 package tel.schich.httprequestrouter.segment;
 
-public class RootSegment implements Segment {
-    public static final Segment ROOT = new RootSegment();
+import tel.schich.httprequestrouter.RouteParser;
+
+import java.util.Objects;
+
+public class UnconstrainedSegment implements NamedSegment {
+
+    private final String name;
+
+    public UnconstrainedSegment(String name) {
+        this.name = name;
+    }
 
     @Override
-    public String toString() {
-        return "RootSegment";
+    public String getName() {
+        return name;
     }
 
     @Override
     public boolean canHaveChildren() {
-        return true;
+        return false;
     }
 
     @Override
     public int matches(String path, int start) {
-        return start;
+        int end = path.indexOf(RouteParser.SEPARATOR, start);
+        if (end == -1) {
+            end = path.length();
+        }
+        return end;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UnconstrainedSegment)) return false;
+        UnconstrainedSegment that = (UnconstrainedSegment) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
+    @Override
+    public String toString() {
+        return "UnconstrainedSegment(" + name + ')';
     }
 }

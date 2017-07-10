@@ -23,21 +23,19 @@
 package tel.schich.httprequestrouter;
 
 import tel.schich.httprequestrouter.segment.Segment;
-import tel.schich.httprequestrouter.segment.factory.StaticSegmentFactory;
 import tel.schich.httprequestrouter.segment.factory.SegmentFactory;
+import tel.schich.httprequestrouter.segment.factory.StaticSegmentFactory;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
-import static tel.schich.httprequestrouter.segment.RootSegment.ROOT;
 
 public class RouteParser {
     public static final char SEPARATOR = '/';
     public static final SegmentFactory DEFAULT_FACTORY = new StaticSegmentFactory();
     private static final char ESCAPE = '\\';
-    private static final List<Segment> ROOT_ROUTE = singletonList(ROOT);
+    private static final List<Segment> ROOT_ROUTE = Collections.emptyList();
 
     @NotNull
     public static List<Segment> parseRoute(@NotNull String route, @NotNull SegmentFactory factory) {

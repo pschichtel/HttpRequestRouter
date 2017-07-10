@@ -32,4 +32,9 @@ public class RouteSegment<TMethod, TRequest, TResponse> {
         this.segment = segment;
         this.subTree = subTree;
     }
+
+    @Override
+    public String toString() {
+        return "RouteSegment(" + segment + ')';
+    }
 }

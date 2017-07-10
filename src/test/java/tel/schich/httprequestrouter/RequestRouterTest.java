@@ -23,17 +23,34 @@
 package tel.schich.httprequestrouter;
 
 import org.junit.jupiter.api.Test;
-import tel.schich.httprequestrouter.segment.SegmentOrder;
-import tel.schich.httprequestrouter.segment.StaticSegment;
+import tel.schich.httprequestrouter.segment.*;
+
+import java.util.Optional;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static tel.schich.httprequestrouter.RouteParser.DEFAULT_FACTORY;
+import static tel.schich.httprequestrouter.segment.SegmentOrder.order;
 
 class RequestRouterTest {
 
     @Test
     void testRouter() {
-        RequestRouter<Object, Object, Object> router =
-                new RequestRouter<>(RouteTree.create(SegmentOrder.order(StaticSegment.class)));
+        final Object[] method = new Object[0];
+        final Object response = method;
+        SegmentOrder<Object, Object, Object> order = order(StaticSegment.class, UnconstrainedSegment.class, ConstrainedSegment.class, UnboundedSegment.class);
+        RequestRouter<Object, Object, Object> router = new RequestRouter<>(DEFAULT_FACTORY, order)
+                                                        .withHandler(method, "/", h -> response)
+                                                        .withHandler(method, "/a", h -> response)
+                                                        .withHandler(method, "/b", h -> response)
+                                                        .withHandler(method, "/b/c", h -> response);
         assertNotNull(router);
+
+        Optional<Function<Object, Object>> optionalHandler = router.routeRequest(method, "/a");
+        assertTrue(optionalHandler.isPresent());
+        Function<Object, Object> handler = optionalHandler.get();
+        assertEquals(response, handler.apply(null));
+
+        assertFalse(router.routeRequest(method, "/c").isPresent());
     }
 }

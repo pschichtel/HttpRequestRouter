@@ -56,11 +56,11 @@ public class DynamicSegmentFactory implements SegmentFactory {
     private Segment parseConstrained(String raw, ConstraintLookup constraints) {
         int openingBrace = raw.indexOf('{', 1);
         if (openingBrace == -1) {
-            return new ConstrainedSegment(raw.substring(1), constraints.getDefault());
+            return new UnconstrainedSegment(raw.substring(1));
         }
         int closingBrace = raw.indexOf('}', openingBrace);
         if (closingBrace == -1 || closingBrace != raw.length() - 1) {
-            return new ConstrainedSegment(raw.substring(1), constraints.getDefault());
+            return new UnconstrainedSegment(raw.substring(1));
         }
 
         String name = raw.substring(0, openingBrace);
@@ -75,6 +75,6 @@ public class DynamicSegmentFactory implements SegmentFactory {
     }
 
     private Segment parseWildcard(String raw) {
-        return new WildcardSegment(raw.substring(1));
+        return new UnboundedSegment(raw.substring(1));
     }
 }
