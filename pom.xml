@@ -25,9 +25,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/CubeEngine/Dirigent</url>
-        <connection>scm:git:https://github.com/CubeEngine/Dirigent</connection>
-        <developerConnection>scm:git:git@github.com:CubeEngine/Dirigent</developerConnection>
+        <url>https://github.com/pschichtel/HttpRequestRouter</url>
+        <connection>scm:git:https://github.com/pschichtel/HttpRequestRouter</connection>
+        <developerConnection>scm:git:git@github.com:pschichtel/HttpRequestRouter</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
