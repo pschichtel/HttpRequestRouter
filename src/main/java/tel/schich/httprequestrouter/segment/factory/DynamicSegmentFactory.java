@@ -63,12 +63,12 @@ public class DynamicSegmentFactory implements SegmentFactory {
             return new UnconstrainedSegment(raw.substring(1));
         }
 
-        String name = raw.substring(0, openingBrace);
+        String name = raw.substring(1, openingBrace);
         String constraintName = raw.substring(openingBrace + 1, closingBrace);
 
         Optional<Constraint> constraint = constraints.lookup(constraintName);
         if (constraint.isPresent()) {
-            return new ConstrainedSegment(name, constraint.get());
+            return new ConstrainedSegment(name, constraint.get(), constraints);
         } else {
             throw new UnknownConstrainException(constraintName);
         }

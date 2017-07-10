@@ -24,28 +24,49 @@ package tel.schich.httprequestrouter.segment;
 
 import tel.schich.httprequestrouter.RouteSegment;
 
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.*;
 
-public abstract class SegmentOrder<TMethod, TRequest, TResponse> implements Comparator<RouteSegment<TMethod, TRequest, TResponse>> {
+public class SegmentOrder<TMethod, TRequest, TResponse> implements Comparator<RouteSegment<TMethod, TRequest, TResponse>> {
+
+    private final Set<Class<? extends Segment>> supportedClasses = new HashSet<>();
+    private final Map<Class<? extends Segment>, Integer> priorities = new IdentityHashMap<>();
+
+    public SegmentOrder(Class<? extends Segment>[] segmentClasses) {
+        for (int i = 0; i < segmentClasses.length; ++i) {
+            supportedClasses.add(segmentClasses[i]);
+            priorities.put(segmentClasses[i], i);
+        }
+    }
+
+    public boolean isSupported(Segment segment) {
+        return isSupported(segment.getClass());
+    }
+
+    public boolean isSupported(Class<? extends Segment> segmentClass) {
+        return supportedClasses.contains(segmentClass);
+    }
+
+    @Override
+    public int compare(RouteSegment<TMethod, TRequest, TResponse> left, RouteSegment<TMethod, TRequest, TResponse> right) {
+        Class<? extends Segment> leftClass = left.segment.getClass();
+        Class<? extends Segment> rightClass = right.segment.getClass();
+
+        if (leftClass == rightClass) {
+            if (Comparator.class.isAssignableFrom(leftClass)) {
+                @SuppressWarnings("unchecked")
+                Comparator<Segment> comparator = (Comparator<Segment>)left.segment;
+                return comparator.compare(left.segment, right.segment);
+            } else {
+                return 0;
+            }
+        } else {
+            return Integer.compare(priorities.get(leftClass), priorities.get(rightClass));
+        }
+    }
 
     @SafeVarargs
     public static <TMethod, TRequest, TResponse> SegmentOrder<TMethod, TRequest, TResponse> order(Class<? extends Segment>... segmentClasses) {
-        final Map<Class<? extends Segment>, Integer> prios = new IdentityHashMap<>();
-        for (int i = 1; i < segmentClasses.length; ++i) {
-            prios.put(segmentClasses[i], i);
-        }
-
-        return new SegmentOrder<TMethod, TRequest, TResponse>() {
-            @Override
-            public int compare(RouteSegment<TMethod, TRequest, TResponse> left, RouteSegment<TMethod, TRequest, TResponse> right) {
-                Integer leftPrio = prios.getOrDefault(left.segment.getClass(), Integer.MAX_VALUE);
-                Integer rightPrio = prios.getOrDefault(right.segment.getClass(), Integer.MAX_VALUE);
-
-                return leftPrio.compareTo(rightPrio);
-            }
-        };
+        return new SegmentOrder<>(segmentClasses);
     }
 
 }

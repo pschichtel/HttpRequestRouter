@@ -71,10 +71,6 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
         return Optional.empty();
     }
 
-    public RequestRouter<TMethod, TRequest, TResponse> withSegmentFactory(SegmentFactory factory) {
-        return new RequestRouter<>(factory, routeTree);
-    }
-
     public RequestRouter<TMethod, TRequest, TResponse> withHandler(TMethod method, String route, Function<TRequest, TResponse> handler) {
         List<Segment> parsedRoute = RouteParser.parseRoute(route, segmentFactory);
         return new RequestRouter<>(segmentFactory, routeTree.addHandler(method, parsedRoute, handler));

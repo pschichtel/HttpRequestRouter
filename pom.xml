@@ -147,13 +147,13 @@
                 <!-- execute the goal mutationCoverage to produce it -->
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.2.0</version>
+                <version>1.2.2</version>
                 <configuration>
                     <targetClasses>
-                        <param>org.cubeengine.dirigent*</param>
+                        <param>tel.schich.httprequestrouter*</param>
                     </targetClasses>
                     <targetTests>
-                        <param>org.cubeengine.dirigent*</param>
+                        <param>tel.schich.httprequestrouter*</param>
                     </targetTests>
                     <verbose>false</verbose>
                     <failWhenNoMutations>false</failWhenNoMutations>

@@ -24,17 +24,22 @@ package tel.schich.httprequestrouter.segment;
 
 import tel.schich.httprequestrouter.RouteParser;
 import tel.schich.httprequestrouter.segment.constraint.Constraint;
+import tel.schich.httprequestrouter.segment.constraint.ConstraintLookup;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 
-public class ConstrainedSegment implements NamedSegment {
+public class ConstrainedSegment implements NamedSegment, Comparator<ConstrainedSegment> {
 
     private final String name;
     private final Constraint constraint;
+    private final ConstraintLookup lookup;
 
-    public ConstrainedSegment(String name, Constraint constraint) {
+    public ConstrainedSegment(String name, Constraint constraint, ConstraintLookup lookup) {
         this.name = name;
         this.constraint = constraint;
+        this.lookup = lookup;
     }
 
     @Override
@@ -77,5 +82,15 @@ public class ConstrainedSegment implements NamedSegment {
     @Override
     public String toString() {
         return "ConstrainedSegment(" + name + ", " + constraint + ')';
+    }
+
+    @Override
+    public boolean isConsistentWith(List<Segment> segments) {
+        return true;
+    }
+
+    @Override
+    public int compare(ConstrainedSegment left, ConstrainedSegment right) {
+        return Integer.compare(lookup.getPriority(left.constraint), lookup.getPriority(right.constraint));
     }
 }

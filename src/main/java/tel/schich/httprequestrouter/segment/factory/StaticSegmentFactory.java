@@ -28,6 +28,9 @@ import tel.schich.httprequestrouter.segment.StaticSegment;
 public class StaticSegmentFactory implements SegmentFactory {
     @Override
     public Segment toSegment(String raw) {
+        if (raw.isEmpty()) {
+            return StaticSegment.EMPTY;
+        }
         return new StaticSegment(raw);
     }
 }

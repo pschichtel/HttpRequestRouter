@@ -22,6 +22,7 @@
  */
 package tel.schich.httprequestrouter.segment;
 
+import java.util.List;
 import java.util.Objects;
 
 public class UnboundedSegment implements NamedSegment {
@@ -62,5 +63,10 @@ public class UnboundedSegment implements NamedSegment {
     @Override
     public String toString() {
         return "UnboundedSegment(" + name + ')';
+    }
+
+    @Override
+    public boolean isConsistentWith(List<Segment> segments) {
+        return segments.stream().noneMatch(s -> s instanceof UnboundedSegment);
     }
 }

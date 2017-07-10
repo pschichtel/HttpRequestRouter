@@ -22,16 +22,15 @@
  */
 package tel.schich.httprequestrouter.segment.constraint;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class ConstraintLookup {
     private final Map<String, Constraint> constraints;
+    private final Map<Constraint, Integer> priorities;
 
-    private ConstraintLookup(Map<String, Constraint> constraints) {
+    private ConstraintLookup(Map<String, Constraint> constraints, Map<Constraint, Integer> priorities) {
         this.constraints = constraints;
+        this.priorities = priorities;
     }
 
     public Optional<Constraint> lookup(String name) {
@@ -41,10 +40,18 @@ public class ConstraintLookup {
     public ConstraintLookup with(String name, Constraint constraint) {
         Map<String, Constraint> constraints = new HashMap<>(this.constraints);
         constraints.put(name, constraint);
-        return new ConstraintLookup(constraints);
+
+        Map<Constraint, Integer> priorities = new IdentityHashMap<>(this.priorities);
+        priorities.put(constraint, priorities.size());
+
+        return new ConstraintLookup(constraints, priorities);
+    }
+
+    public int getPriority(Constraint constraint) {
+        return priorities.get(constraint);
     }
 
     public static ConstraintLookup create() {
-        return new ConstraintLookup(Collections.emptyMap());
+        return new ConstraintLookup(Collections.emptyMap(), Collections.emptyMap());
     }
 }

@@ -22,6 +22,7 @@
  */
 package tel.schich.httprequestrouter.segment;
 
+import java.util.List;
 import java.util.Objects;
 
 public class StaticSegment implements Segment {
@@ -67,5 +68,10 @@ public class StaticSegment implements Segment {
             return start + content.length();
         }
         return -1;
+    }
+
+    @Override
+    public boolean isConsistentWith(List<Segment> segments) {
+        return segments.stream().noneMatch(s -> s instanceof StaticSegment && ((StaticSegment) s).content.equals(content));
     }
 }

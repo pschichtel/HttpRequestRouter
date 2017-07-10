@@ -24,6 +24,7 @@ package tel.schich.httprequestrouter.segment;
 
 import tel.schich.httprequestrouter.RouteParser;
 
+import java.util.List;
 import java.util.Objects;
 
 public class UnconstrainedSegment implements NamedSegment {
@@ -69,5 +70,10 @@ public class UnconstrainedSegment implements NamedSegment {
     @Override
     public String toString() {
         return "UnconstrainedSegment(" + name + ')';
+    }
+
+    @Override
+    public boolean isConsistentWith(List<Segment> segments) {
+        return segments.stream().noneMatch(s -> s instanceof UnconstrainedSegment);
     }
 }

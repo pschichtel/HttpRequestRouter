@@ -27,6 +27,9 @@ import tel.schich.httprequestrouter.segment.SegmentOrder;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class RouteTree<TMethod, TRequest, TResponse> {
 
@@ -75,10 +78,14 @@ public class RouteTree<TMethod, TRequest, TResponse> {
             return new RouteTree<>(order, children, newHandlers);
         } else {
             Segment head = route.get(0);
+            if (!order.isSupported(head)) {
+                throw new IllegalArgumentException("The supplied segment order does not support segments of type " + head.getClass().getName() + " !");
+            }
+
             List<Segment> rest = route.subList(1, route.size());
+            Optional<RouteTree<TMethod, TRequest, TResponse>> optionalChild = findChildFor(head);
 
             List<RouteSegment<TMethod, TRequest, TResponse>> newChildren;
-            Optional<RouteTree<TMethod, TRequest, TResponse>> optionalChild = findChildFor(head);
             if (optionalChild.isPresent()) {
                 RouteTree<TMethod, TRequest, TResponse> child = optionalChild.get();
                 RouteTree<TMethod, TRequest, TResponse> newSubTree = child.addHandler(method, rest, handler);
@@ -92,6 +99,9 @@ public class RouteTree<TMethod, TRequest, TResponse> {
                 }
                 // no sorting needed here, because the order is retained
             } else {
+                if (!head.isConsistentWith(children.stream().map(rs -> rs.segment).collect(toList()))) {
+                    throw new IllegalArgumentException("One of the segments would not be consistent with its siblings!");
+                }
                 newChildren = new ArrayList<>(children);
                 RouteTree<TMethod, TRequest, TResponse> newRouteTree = RouteTree.<TMethod, TRequest, TResponse>create(order).addHandler(method, rest, handler);
                 RouteSegment<TMethod, TRequest, TResponse> newRouteSegment = new RouteSegment<>(head, newRouteTree);

@@ -22,7 +22,10 @@
  */
 package tel.schich.httprequestrouter.segment;
 
+import java.util.List;
+
 public interface Segment {
     boolean canHaveChildren();
     int matches(String path, int start);
+    boolean isConsistentWith(List<Segment> segments);
 }

@@ -23,24 +23,32 @@
 package tel.schich.httprequestrouter;
 
 import org.junit.jupiter.api.Test;
+import tel.schich.httprequestrouter.segment.Segment;
+import tel.schich.httprequestrouter.segment.StaticSegment;
+import tel.schich.httprequestrouter.segment.constraint.ConstraintLookup;
+import tel.schich.httprequestrouter.segment.constraint.PatternConstraint;
+import tel.schich.httprequestrouter.segment.constraint.UnknownConstrainException;
+import tel.schich.httprequestrouter.segment.factory.DynamicSegmentFactory;
+import tel.schich.httprequestrouter.segment.factory.SegmentFactory;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.List;
+
+import static java.util.regex.Pattern.compile;
+import static org.junit.jupiter.api.Assertions.*;
 import static tel.schich.httprequestrouter.RouteParser.DEFAULT_FACTORY;
 import static tel.schich.httprequestrouter.RouteParser.parseRoute;
-import static tel.schich.httprequestrouter.TestUtil.route;
-import static tel.schich.httprequestrouter.TestUtil.seg;
+import static tel.schich.httprequestrouter.TestUtil.*;
 
 class RouteParserTest {
 
     @Test
     void testParseRoute() {
         assertEquals(route(), parseRoute("/", DEFAULT_FACTORY));
-        assertEquals(route(seg("a")), parseRoute("/a", DEFAULT_FACTORY));
-        assertEquals(route(seg("a"), seg("b")), parseRoute("/a/b", DEFAULT_FACTORY));
-        assertEquals(route(seg("a/b")), parseRoute("/a\\/b", DEFAULT_FACTORY));
-        assertEquals(route(seg("a\\"), seg("b")), parseRoute("/a\\\\/b", DEFAULT_FACTORY));
-        assertEquals(route(seg("a\\b")), parseRoute("/a\\b", DEFAULT_FACTORY));
+        assertEquals(route(stat("a")), parseRoute("/a", DEFAULT_FACTORY));
+        assertEquals(route(stat("a"), stat("b")), parseRoute("/a/b", DEFAULT_FACTORY));
+        assertEquals(route(stat("a/b")), parseRoute("/a\\/b", DEFAULT_FACTORY));
+        assertEquals(route(stat("a\\"), stat("b")), parseRoute("/a\\\\/b", DEFAULT_FACTORY));
+        assertEquals(route(stat("a\\b")), parseRoute("/a\\b", DEFAULT_FACTORY));
     }
 
     @Test
@@ -48,4 +56,53 @@ class RouteParserTest {
         assertThrows(IllegalArgumentException.class, () -> parseRoute("a", DEFAULT_FACTORY));
     }
 
+    @Test
+    void emptySegment() {
+        List<Segment> staticRoute = parseRoute("///", DEFAULT_FACTORY);
+        assertEquals(2, staticRoute.size());
+        assertSame(StaticSegment.EMPTY, staticRoute.get(0));
+        assertSame(StaticSegment.EMPTY, staticRoute.get(1));
+
+        List<Segment> dynamicRoute = parseRoute("///", new DynamicSegmentFactory(ConstraintLookup.create()));
+        assertEquals(2, dynamicRoute.size());
+        assertSame(StaticSegment.EMPTY, dynamicRoute.get(0));
+        assertSame(StaticSegment.EMPTY, dynamicRoute.get(1));
+    }
+
+    @Test
+    void constrainedSegments() {
+        PatternConstraint ic = new PatternConstraint(compile("0|[1-9]\\d+"));
+        PatternConstraint nc = new PatternConstraint(compile("\\d+"));
+        PatternConstraint tc = new PatternConstraint(compile("test[123]"));
+
+        ConstraintLookup constraints = ConstraintLookup.create()
+                .with("integer", ic)
+                .with("numeric", nc)
+                .with("test", tc);
+
+        final SegmentFactory factory = new DynamicSegmentFactory(constraints);
+
+        assertEquals(route(stat("pre"), constr("a", ic)), parseRoute("/pre/:a{integer}", factory));
+        assertEquals(route(stat("pre"), constr("b", nc)), parseRoute("/pre/:b{numeric}", factory));
+        assertEquals(route(stat("pre"), constr("c", tc), constr("d", ic)), parseRoute("/pre/:c{test}/:d{integer}", factory));
+        assertThrows(UnknownConstrainException.class, () -> parseRoute("/pre/:e{unknown}", factory));
+    }
+
+    @Test
+    void unconstrainedSegments() {
+        final SegmentFactory factory = new DynamicSegmentFactory(ConstraintLookup.create());
+
+        assertEquals(route(stat("pre"), unconstr("a")), parseRoute("/pre/:a", factory));
+        assertEquals(route(stat("pre"), unconstr("a}{")), parseRoute("/pre/:a}{", factory));
+        assertEquals(route(stat("pre"), unconstr("a}")), parseRoute("/pre/:a}", factory));
+    }
+
+    @Test
+    void unbouncedSegments() {
+        final SegmentFactory factory = new DynamicSegmentFactory(ConstraintLookup.create());
+
+        assertEquals(route(stat("pre"), unbound("a")), parseRoute("/pre/*a", factory));
+        assertEquals(route(stat("pre"), unbound("a}{")), parseRoute("/pre/*a}{", factory));
+        assertEquals(route(stat("pre"), unbound("a}")), parseRoute("/pre/*a}", factory));
+    }
 }
