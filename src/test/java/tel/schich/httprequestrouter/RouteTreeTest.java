@@ -27,7 +27,6 @@ import tel.schich.httprequestrouter.segment.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static tel.schich.httprequestrouter.TestUtil.route;
@@ -44,11 +43,11 @@ class RouteTreeTest {
     @Test
     void getHandler() {
         Object[] method = new Object[0];
-        Function<Object, Object> handler = r -> null;
+        RouteHandler<Object, Object> handler = r -> null;
         RouteTree<Object, Object, Object> tree = RouteTree.create(SegmentOrder.order(StaticSegment.class))
                 .addHandler(method, route(), handler);
 
-        Optional<Function<Object, Object>> optionalHandler = tree.getHandler(method);
+        Optional<RouteHandler<Object, Object>> optionalHandler = tree.getHandler(method);
         assertTrue(optionalHandler.isPresent());
         assertSame(handler, optionalHandler.get());
     }
@@ -58,7 +57,7 @@ class RouteTreeTest {
         SegmentOrder<Object, Object, Object> order = SegmentOrder.order(StaticSegment.class, UnboundedSegment.class);
         RouteTree<Object, Object, Object> tree = RouteTree.create(order);
 
-        Function<Object, Object> handler = a -> null;
+        RouteHandler<Object, Object> handler = a -> null;
         List<Segment> route = route(stat("a"), stat("b"), stat("c"));
         Object method = new Object[0];
 
@@ -90,9 +89,9 @@ class RouteTreeTest {
         Optional<RouteTree.Match<Object, Object, Integer>> optionalChild = tree.matchChild("/a", 0);
 
         assertTrue(optionalChild.isPresent());
-        Optional<Function<Object, Integer>> optionalHandler = optionalChild.get().child.getHandler(method);
+        Optional<RouteHandler<Object, Integer>> optionalHandler = optionalChild.get().child.getHandler(method);
         assertTrue(optionalHandler.isPresent());
-        assertEquals(Integer.valueOf(1), optionalHandler.get().apply(null));
+        assertEquals(Integer.valueOf(1), optionalHandler.get().handle(null));
     }
 
 }

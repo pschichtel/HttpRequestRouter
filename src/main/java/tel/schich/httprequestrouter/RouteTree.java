@@ -26,8 +26,6 @@ import tel.schich.httprequestrouter.segment.Segment;
 import tel.schich.httprequestrouter.segment.SegmentOrder;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -35,9 +33,9 @@ public class RouteTree<TMethod, TRequest, TResponse> {
 
     private final SegmentOrder<TMethod, TRequest, TResponse> order;
     private final List<RouteSegment<TMethod, TRequest, TResponse>> children;
-    private final Map<TMethod, Function<TRequest, TResponse>> handlers;
+    private final Map<TMethod, RouteHandler<TRequest, TResponse>> handlers;
 
-    private RouteTree(SegmentOrder<TMethod, TRequest, TResponse> order, List<RouteSegment<TMethod, TRequest, TResponse>> children, Map<TMethod, Function<TRequest, TResponse>> handlers) {
+    private RouteTree(SegmentOrder<TMethod, TRequest, TResponse> order, List<RouteSegment<TMethod, TRequest, TResponse>> children, Map<TMethod, RouteHandler<TRequest, TResponse>> handlers) {
         this.order = order;
         this.children = children;
         this.handlers = handlers;
@@ -51,14 +49,14 @@ public class RouteTree<TMethod, TRequest, TResponse> {
         for (RouteSegment<TMethod, TRequest, TResponse> next : children) {
             int match = next.segment.matches(path, from);
             if (match > -1) {
-                return Optional.of(new Match<>(next.subTree, match));
+                return Optional.of(new Match<>(next.segment, next.subTree, match));
             }
         }
 
         return Optional.empty();
     }
 
-    public Optional<Function<TRequest, TResponse>> getHandler(TMethod method) {
+    public Optional<RouteHandler<TRequest, TResponse>> getHandler(TMethod method) {
         return Optional.ofNullable(handlers.get(method));
     }
 
@@ -71,9 +69,9 @@ public class RouteTree<TMethod, TRequest, TResponse> {
         return Optional.empty();
     }
 
-    public RouteTree<TMethod, TRequest, TResponse> addHandler(TMethod method, List<Segment> route, Function<TRequest, TResponse> handler) {
+    public RouteTree<TMethod, TRequest, TResponse> addHandler(TMethod method, List<Segment> route, RouteHandler<TRequest, TResponse> handler) {
         if (route.isEmpty()) {
-            HashMap<TMethod, Function<TRequest, TResponse>> newHandlers = new HashMap<>(this.handlers);
+            HashMap<TMethod, RouteHandler<TRequest, TResponse>> newHandlers = new HashMap<>(this.handlers);
             newHandlers.put(method, handler);
             return new RouteTree<>(order, children, newHandlers);
         } else {
@@ -119,10 +117,12 @@ public class RouteTree<TMethod, TRequest, TResponse> {
     }
 
     public static class Match<TMethod, TRequest, TResponse> {
+        public final Segment segment;
         public final RouteTree<TMethod, TRequest, TResponse> child;
         public final int endedAt;
 
-        public Match(RouteTree<TMethod, TRequest, TResponse> child, int endedAt) {
+        public Match(Segment segment, RouteTree<TMethod, TRequest, TResponse> child, int endedAt) {
+            this.segment = segment;
             this.child = child;
             this.endedAt = endedAt;
         }

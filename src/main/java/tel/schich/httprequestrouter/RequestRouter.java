@@ -22,11 +22,14 @@
  */
 package tel.schich.httprequestrouter;
 
+import tel.schich.httprequestrouter.segment.NamedSegment;
 import tel.schich.httprequestrouter.segment.Segment;
 import tel.schich.httprequestrouter.segment.SegmentOrder;
 import tel.schich.httprequestrouter.segment.factory.SegmentFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -47,6 +50,7 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
     public Optional<Function<TRequest, TResponse>> routeRequest(TMethod method, String path) {
 
         RouteTree<TMethod, TRequest, TResponse> subTree = routeTree;
+        Map<String, String> namedValues = new HashMap<>();
         int routeOffset = 0;
         while (routeOffset < path.length()) {
             // skip char if it's a slash
@@ -56,6 +60,9 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
                 Optional<RouteTree.Match<TMethod, TRequest, TResponse>> optionalMatch = routeTree.matchChild(path, routeOffset);
                 if (optionalMatch.isPresent()) {
                     RouteTree.Match<TMethod, TRequest, TResponse> match = optionalMatch.get();
+                    if (match.segment instanceof NamedSegment) {
+                        namedValues.put(((NamedSegment) match.segment).getName(), path.substring(routeOffset, match.endedAt));
+                    }
                     routeOffset = match.endedAt;
                     subTree = match.child;
                 } else {
@@ -65,13 +72,14 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
         }
 
         if (routeOffset >= path.length()) {
-            return subTree.getHandler(method);
+            return subTree.getHandler(method).map((handler) ->
+                 ((Function<TRequest, TResponse>) req -> handler.handle(new RoutedRequest<>(namedValues, req))));
+        } else {
+            return Optional.empty();
         }
-
-        return Optional.empty();
     }
 
-    public RequestRouter<TMethod, TRequest, TResponse> withHandler(TMethod method, String route, Function<TRequest, TResponse> handler) {
+    public RequestRouter<TMethod, TRequest, TResponse> withHandler(TMethod method, String route, RouteHandler<TRequest, TResponse> handler) {
         List<Segment> parsedRoute = RouteParser.parseRoute(route, segmentFactory);
         return new RequestRouter<>(segmentFactory, routeTree.addHandler(method, parsedRoute, handler));
     }
