@@ -30,7 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-public class ConstrainedSegment implements NamedSegment, Comparator<ConstrainedSegment> {
+public class ConstrainedSegment implements NamedSegment, Comparable<ConstrainedSegment> {
 
     private final String name;
     private final Constraint constraint;
@@ -90,7 +90,7 @@ public class ConstrainedSegment implements NamedSegment, Comparator<ConstrainedS
     }
 
     @Override
-    public int compare(ConstrainedSegment left, ConstrainedSegment right) {
-        return Integer.compare(lookup.getPriority(left.constraint), lookup.getPriority(right.constraint));
+    public int compareTo(ConstrainedSegment other) {
+        return Integer.compare(lookup.getPriority(constraint), lookup.getPriority(other.constraint));
     }
 }

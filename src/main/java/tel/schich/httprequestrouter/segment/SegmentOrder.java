@@ -52,10 +52,10 @@ public class SegmentOrder<TMethod, TRequest, TResponse> implements Comparator<Ro
         Class<? extends Segment> rightClass = right.segment.getClass();
 
         if (leftClass == rightClass) {
-            if (Comparator.class.isAssignableFrom(leftClass)) {
+            if (Comparable.class.isAssignableFrom(leftClass)) {
                 @SuppressWarnings("unchecked")
-                Comparator<Segment> comparator = (Comparator<Segment>)left.segment;
-                return comparator.compare(left.segment, right.segment);
+                Comparable<Segment> comparableLeft = (Comparable<Segment>)left.segment;
+                return comparableLeft.compareTo(right.segment);
             } else {
                 return 0;
             }

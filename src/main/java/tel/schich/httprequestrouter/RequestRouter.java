@@ -31,25 +31,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public class RequestRouter<TMethod, TRequest, TResponse> {
+public class RequestRouter<Verb, In, Out> {
 
     private final SegmentFactory segmentFactory;
-    private final RouteTree<TMethod, TRequest, TResponse> routeTree;
+    private final RouteTree<Verb, In, Out> routeTree;
 
-    public RequestRouter(SegmentFactory segmentFactory, SegmentOrder<TMethod, TRequest, TResponse> order) {
+    public RequestRouter(SegmentFactory segmentFactory, SegmentOrder<Verb, In, Out> order) {
         this(segmentFactory, RouteTree.create(order));
     }
 
-    public RequestRouter(SegmentFactory segmentFactory, RouteTree<TMethod, TRequest, TResponse> routeTree) {
+    public RequestRouter(SegmentFactory segmentFactory, RouteTree<Verb, In, Out> routeTree) {
         this.segmentFactory = segmentFactory;
         this.routeTree = routeTree;
     }
 
-    public Optional<Function<TRequest, TResponse>> routeRequest(TMethod method, String path) {
+    public Function<In, CompletableFuture<Out>> routeRequest(Verb method, String path, RouteFallbackHandler<Verb, In, Out> fallbackHandler) {
 
-        RouteTree<TMethod, TRequest, TResponse> subTree = routeTree;
+        RouteTree<Verb, In, Out> subTree = routeTree;
         Map<String, String> namedValues = new HashMap<>();
         int routeOffset = 0;
         while (routeOffset < path.length()) {
@@ -57,9 +58,9 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
             if (path.charAt(routeOffset) == RouteParser.SEPARATOR) {
                 routeOffset++;
             } else {
-                Optional<RouteTree.Match<TMethod, TRequest, TResponse>> optionalMatch = routeTree.matchChild(path, routeOffset);
+                Optional<RouteTree.Match<Verb, In, Out>> optionalMatch = routeTree.matchChild(path, routeOffset);
                 if (optionalMatch.isPresent()) {
-                    RouteTree.Match<TMethod, TRequest, TResponse> match = optionalMatch.get();
+                    RouteTree.Match<Verb, In, Out> match = optionalMatch.get();
                     if (match.segment instanceof NamedSegment) {
                         namedValues.put(((NamedSegment) match.segment).getName(), path.substring(routeOffset, match.endedAt));
                     }
@@ -70,16 +71,20 @@ public class RequestRouter<TMethod, TRequest, TResponse> {
                 }
             }
         }
+        final RouteTree<Verb, In, Out> finalSubtree = subTree;
+        final String matchedPrefix = path.substring(0, routeOffset);
 
         if (routeOffset >= path.length()) {
-            return subTree.getHandler(method).map((handler) ->
-                 ((Function<TRequest, TResponse>) req -> handler.handle(new RoutedRequest<>(namedValues, req))));
+            return subTree
+                    .getHandler(method)
+                    .map((handler) -> ((Function<In, CompletableFuture<Out>>) req -> handler.handle(new RoutedRequest<>(namedValues, req))))
+                    .orElseGet(() -> req -> fallbackHandler.handle(matchedPrefix, finalSubtree, req));
         } else {
-            return Optional.empty();
+            return req -> fallbackHandler.handle(matchedPrefix, finalSubtree, req);
         }
     }
 
-    public RequestRouter<TMethod, TRequest, TResponse> withHandler(TMethod method, String route, RouteHandler<TRequest, TResponse> handler) {
+    public RequestRouter<Verb, In, Out> withHandler(Verb method, String route, RouteHandler<In, Out> handler) {
         List<Segment> parsedRoute = RouteParser.parseRoute(route, segmentFactory);
         return new RequestRouter<>(segmentFactory, routeTree.addHandler(method, parsedRoute, handler));
     }

@@ -22,7 +22,9 @@
  */
 package tel.schich.httprequestrouter;
 
+import java.util.concurrent.CompletableFuture;
+
 @FunctionalInterface
 public interface RouteHandler<TRequest, TResponse> {
-    TResponse handle(RoutedRequest<TRequest> request);
+    CompletableFuture<TResponse> handle(RoutedRequest<TRequest> request);
 }
