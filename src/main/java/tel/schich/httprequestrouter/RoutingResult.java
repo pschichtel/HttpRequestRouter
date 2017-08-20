@@ -23,21 +23,32 @@
 package tel.schich.httprequestrouter;
 
 import java.util.Map;
+import java.util.Optional;
 
-public class RoutedRequest<TRequest> {
-    private final Map<String, String> routeParameters;
-    private final TRequest request;
+public class RoutingResult<T> {
+    private final Map<String, String> arguments;
+    private final RouteTree<T> leafTree;
+    private final String matchedPrefix;
 
-    public RoutedRequest(Map<String, String> routeParameters, TRequest request) {
-        this.routeParameters = routeParameters;
-        this.request = request;
+    public RoutingResult(Map<String, String> arguments, RouteTree<T> leafTree, String matchedPrefix) {
+        this.arguments = arguments;
+        this.leafTree = leafTree;
+        this.matchedPrefix = matchedPrefix;
     }
 
-    public Map<String, String> getRouteParameters() {
-        return routeParameters;
+    public Optional<T> getHandler() {
+        return Optional.empty();
     }
 
-    public TRequest getRequest() {
-        return request;
+    public Map<String, String> getArguments() {
+        return arguments;
+    }
+
+    public RouteTree<T> getLeafTree() {
+        return leafTree;
+    }
+
+    public String getMatchedPrefix() {
+        return matchedPrefix;
     }
 }

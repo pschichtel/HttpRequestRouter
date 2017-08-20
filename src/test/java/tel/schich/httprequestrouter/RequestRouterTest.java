@@ -36,21 +36,21 @@ class RequestRouterTest {
 
     @Test
     void testRouter() {
-        final Object[] method = new Object[0];
-        final Object response = method;
-        SegmentOrder<Object, Object, Object> order = order(StaticSegment.class, UnconstrainedSegment.class, ConstrainedSegment.class, UnboundedSegment.class);
-        RequestRouter<Object, Object, Object> router = new RequestRouter<>(DEFAULT_FACTORY, order)
+        final String method = "GET";
+        final Object response = new Object[0];
+        SegmentOrder<Function<Object, Object>> order = order(StaticSegment.class, UnconstrainedSegment.class, ConstrainedSegment.class, UnboundedSegment.class);
+        RequestRouter<Function<Object, Object>> router = new RequestRouter<>(DEFAULT_FACTORY, order)
                                                         .withHandler(method, "/", h -> response)
                                                         .withHandler(method, "/a", h -> response)
                                                         .withHandler(method, "/b", h -> response)
                                                         .withHandler(method, "/b/c", h -> response);
         assertNotNull(router);
 
-        Optional<Function<Object, Object>> optionalHandler = router.routeRequest(method, "/a");
+        Optional<Function<Object, Object>> optionalHandler = router.routeRequest(method, "/a").getHandler();
         assertTrue(optionalHandler.isPresent());
         Function<Object, Object> handler = optionalHandler.get();
         assertEquals(response, handler.apply(null));
 
-        assertFalse(router.routeRequest(method, "/c").isPresent());
+        assertFalse(router.routeRequest(method, "/c") instanceof SuccessfullyRouted<?>);
     }
 }

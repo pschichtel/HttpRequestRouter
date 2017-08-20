@@ -26,7 +26,7 @@ import tel.schich.httprequestrouter.RouteSegment;
 
 import java.util.*;
 
-public class SegmentOrder<TMethod, TRequest, TResponse> implements Comparator<RouteSegment<TMethod, TRequest, TResponse>> {
+public class SegmentOrder<T> implements Comparator<RouteSegment<T>> {
 
     private final Set<Class<? extends Segment>> supportedClasses = new HashSet<>();
     private final Map<Class<? extends Segment>, Integer> priorities = new IdentityHashMap<>();
@@ -47,7 +47,7 @@ public class SegmentOrder<TMethod, TRequest, TResponse> implements Comparator<Ro
     }
 
     @Override
-    public int compare(RouteSegment<TMethod, TRequest, TResponse> left, RouteSegment<TMethod, TRequest, TResponse> right) {
+    public int compare(RouteSegment<T> left, RouteSegment<T> right) {
         Class<? extends Segment> leftClass = left.segment.getClass();
         Class<? extends Segment> rightClass = right.segment.getClass();
 
@@ -65,7 +65,7 @@ public class SegmentOrder<TMethod, TRequest, TResponse> implements Comparator<Ro
     }
 
     @SafeVarargs
-    public static <TMethod, TRequest, TResponse> SegmentOrder<TMethod, TRequest, TResponse> order(Class<? extends Segment>... segmentClasses) {
+    public static <T> SegmentOrder<T> order(Class<? extends Segment>... segmentClasses) {
         return new SegmentOrder<>(segmentClasses);
     }
 

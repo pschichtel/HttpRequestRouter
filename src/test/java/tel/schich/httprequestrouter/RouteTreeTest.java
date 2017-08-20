@@ -27,71 +27,70 @@ import tel.schich.httprequestrouter.segment.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static tel.schich.httprequestrouter.TestUtil.route;
 import static tel.schich.httprequestrouter.TestUtil.stat;
 import static tel.schich.httprequestrouter.TestUtil.unconstr;
+import static tel.schich.httprequestrouter.TestUtil.GET;
 
 class RouteTreeTest {
     @Test
     void matchChild() {
-        RouteTree<Object, Object, Object> tree = RouteTree.create(SegmentOrder.order(StaticSegment.class, UnboundedSegment.class));
+        RouteTree<Function<Object, Object>> tree = RouteTree.create(SegmentOrder.order(StaticSegment.class, UnboundedSegment.class));
         assertFalse(tree.matchChild("", 1).isPresent());
     }
 
     @Test
     void getHandler() {
-        Object[] method = new Object[0];
-        RouteHandler<Object, Object> handler = r -> null;
-        RouteTree<Object, Object, Object> tree = RouteTree.create(SegmentOrder.order(StaticSegment.class))
-                .addHandler(method, route(), handler);
+        Function<Object, Object> handler = r -> null;
+        RouteTree<Function<Object, Object>> tree = RouteTree.<Function<Object, Object>>create(SegmentOrder.order(StaticSegment.class))
+                .addHandler(GET, route(), handler);
 
-        Optional<RouteHandler<Object, Object>> optionalHandler = tree.getHandler(method);
+        Optional<Function<Object, Object>> optionalHandler = tree.getHandler(GET);
         assertTrue(optionalHandler.isPresent());
         assertSame(handler, optionalHandler.get());
     }
 
     @Test
     void addHandler() {
-        SegmentOrder<Object, Object, Object> order = SegmentOrder.order(StaticSegment.class, UnboundedSegment.class);
-        RouteTree<Object, Object, Object> tree = RouteTree.create(order);
+        SegmentOrder<Function<Object, Object>> order = SegmentOrder.order(StaticSegment.class, UnboundedSegment.class);
+        RouteTree<Function<Object, Object>> tree = RouteTree.create(order);
 
-        RouteHandler<Object, Object> handler = a -> null;
+        Function<Object, Object> handler = a -> null;
         List<Segment> route = route(stat("a"), stat("b"), stat("c"));
-        Object method = new Object[0];
 
-        RouteTree<Object, Object, Object> newTree = tree.addHandler(method, route, handler);
+        RouteTree<Function<Object, Object>> newTree = tree.addHandler(GET, route, handler);
         assertNotSame(newTree, tree);
     }
 
     @Test
     void unsupportedSegment() {
-        RouteTree<Object, Object, Object> tree = RouteTree.create(SegmentOrder.order(UnconstrainedSegment.class));
-        assertThrows(IllegalArgumentException.class, () -> tree.addHandler(new Object[0], route(stat("a")), r -> null));
+        RouteTree<Function<Object, Object>> tree = RouteTree.create(SegmentOrder.order(UnconstrainedSegment.class));
+        assertThrows(IllegalArgumentException.class, () -> tree.addHandler(GET, route(stat("a")), r -> null));
     }
 
     @Test
     void inconsistentSegment() {
-        RouteTree<Object, Object, Object> tree = RouteTree.create(SegmentOrder.order(StaticSegment.class, UnconstrainedSegment.class))
-                .addHandler(new Object[0], route(stat("a"), unconstr("a")), r -> null);
-        assertThrows(IllegalArgumentException.class, () -> tree.addHandler(new Object[0], route(stat("a"), unconstr("b")), r -> null));
+        RouteTree<Function<Object, Object>> tree = RouteTree.<Function<Object, Object>>create(SegmentOrder.order(StaticSegment.class, UnconstrainedSegment.class))
+                .addHandler(GET, route(stat("a"), unconstr("a")), r -> null);
+        assertThrows(IllegalArgumentException.class, () -> tree.addHandler(GET, route(stat("a"), unconstr("b")), r -> null));
     }
 
     @Test
     void create() {
-        SegmentOrder<Object, Object, Integer> order = SegmentOrder.order(UnconstrainedSegment.class, StaticSegment.class);
-        Object[] method = new Object[0];
-        RouteTree<Object, Object, Integer> tree = RouteTree.<Object, Object, Integer>create(order)
-                .addHandler(method, route(unconstr("a")), r -> 1)
-                .addHandler(method, route(stat("a")), r -> 2);
+        SegmentOrder<Function<Object, Object>> order = SegmentOrder.order(UnconstrainedSegment.class, StaticSegment.class);
+        RouteTree<Function<Object, Integer>> tree = RouteTree.<Function<Object, Integer>>create(order)
+                .addHandler(GET, route(unconstr("a")), r -> 1)
+                .addHandler(GET, route(stat("a")), r -> 2);
 
-        Optional<RouteTree.Match<Object, Object, Integer>> optionalChild = tree.matchChild("/a", 0);
+        Optional<RouteTree.Match<Function<Object, Integer>>> optionalChild = tree.matchChild("/a", 0);
 
         assertTrue(optionalChild.isPresent());
-        Optional<RouteHandler<Object, Integer>> optionalHandler = optionalChild.get().child.getHandler(method);
+        Optional<Function<Object, Integer>> optionalHandler = optionalChild.get().child.getHandler(GET);
         assertTrue(optionalHandler.isPresent());
-        assertEquals(Integer.valueOf(1), optionalHandler.get().handle(null));
+        assertEquals(Integer.valueOf(1), optionalHandler.get().apply(null));
     }
 
 }

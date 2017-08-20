@@ -29,24 +29,24 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
-public class RouteTree<TMethod, TRequest, TResponse> {
+public class RouteTree<T> {
 
-    private final SegmentOrder<TMethod, TRequest, TResponse> order;
-    private final List<RouteSegment<TMethod, TRequest, TResponse>> children;
-    private final Map<TMethod, RouteHandler<TRequest, TResponse>> handlers;
+    private final SegmentOrder<T> order;
+    private final List<RouteSegment<T>> children;
+    private final Map<String, T> handlers;
 
-    private RouteTree(SegmentOrder<TMethod, TRequest, TResponse> order, List<RouteSegment<TMethod, TRequest, TResponse>> children, Map<TMethod, RouteHandler<TRequest, TResponse>> handlers) {
+    private RouteTree(SegmentOrder<T> order, List<RouteSegment<T>> children, Map<String, T> handlers) {
         this.order = order;
         this.children = children;
         this.handlers = handlers;
     }
 
-    public Optional<Match<TMethod, TRequest, TResponse>> matchChild(String path, int from) {
+    public Optional<Match<T>> matchChild(java.lang.String path, int from) {
         if (from >= path.length()) {
             return Optional.empty();
         }
 
-        for (RouteSegment<TMethod, TRequest, TResponse> next : children) {
+        for (RouteSegment<T> next : children) {
             int match = next.segment.matches(path, from);
             if (match > -1) {
                 return Optional.of(new Match<>(next.segment, next.subTree, match));
@@ -56,12 +56,12 @@ public class RouteTree<TMethod, TRequest, TResponse> {
         return Optional.empty();
     }
 
-    public Optional<RouteHandler<TRequest, TResponse>> getHandler(TMethod method) {
+    public Optional<T> getHandler(String method) {
         return Optional.ofNullable(handlers.get(method));
     }
 
-    private Optional<RouteTree<TMethod, TRequest, TResponse>> findChildFor(Segment segment) {
-        for (RouteSegment<TMethod, TRequest, TResponse> child : children) {
+    private Optional<RouteTree<T>> findChildFor(Segment segment) {
+        for (RouteSegment<T> child : children) {
             if (child.segment.equals(segment)) {
                 return Optional.of(child.subTree);
             }
@@ -69,9 +69,9 @@ public class RouteTree<TMethod, TRequest, TResponse> {
         return Optional.empty();
     }
 
-    public RouteTree<TMethod, TRequest, TResponse> addHandler(TMethod method, List<Segment> route, RouteHandler<TRequest, TResponse> handler) {
+    public RouteTree<T> addHandler(String method, List<Segment> route, T handler) {
         if (route.isEmpty()) {
-            HashMap<TMethod, RouteHandler<TRequest, TResponse>> newHandlers = new HashMap<>(this.handlers);
+            HashMap<String, T> newHandlers = new HashMap<>(this.handlers);
             newHandlers.put(method, handler);
             return new RouteTree<>(order, children, newHandlers);
         } else {
@@ -81,14 +81,14 @@ public class RouteTree<TMethod, TRequest, TResponse> {
             }
 
             List<Segment> rest = route.subList(1, route.size());
-            Optional<RouteTree<TMethod, TRequest, TResponse>> optionalChild = findChildFor(head);
+            Optional<RouteTree<T>> optionalChild = findChildFor(head);
 
-            List<RouteSegment<TMethod, TRequest, TResponse>> newChildren;
+            List<RouteSegment<T>> newChildren;
             if (optionalChild.isPresent()) {
-                RouteTree<TMethod, TRequest, TResponse> child = optionalChild.get();
-                RouteTree<TMethod, TRequest, TResponse> newSubTree = child.addHandler(method, rest, handler);
+                RouteTree<T> child = optionalChild.get();
+                RouteTree<T> newSubTree = child.addHandler(method, rest, handler);
                 newChildren = new ArrayList<>(children.size());
-                for (RouteSegment<TMethod, TRequest, TResponse> routeSegment : children) {
+                for (RouteSegment<T> routeSegment : children) {
                     if (routeSegment.subTree == child) {
                         newChildren.add(new RouteSegment<>(head, newSubTree));
                     } else {
@@ -101,8 +101,8 @@ public class RouteTree<TMethod, TRequest, TResponse> {
                     throw new IllegalArgumentException("One of the segments would not be consistent with its siblings!");
                 }
                 newChildren = new ArrayList<>(children);
-                RouteTree<TMethod, TRequest, TResponse> newRouteTree = RouteTree.<TMethod, TRequest, TResponse>create(order).addHandler(method, rest, handler);
-                RouteSegment<TMethod, TRequest, TResponse> newRouteSegment = new RouteSegment<>(head, newRouteTree);
+                RouteTree<T> newRouteTree = RouteTree.<T>create(order).addHandler(method, rest, handler);
+                RouteSegment<T> newRouteSegment = new RouteSegment<>(head, newRouteTree);
                 newChildren.add(newRouteSegment);
                 newChildren.sort(order);
             }
@@ -112,16 +112,16 @@ public class RouteTree<TMethod, TRequest, TResponse> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <TMethod, TRequest, TResponse> RouteTree<TMethod, TRequest, TResponse> create(SegmentOrder order) {
+    public static <T> RouteTree<T> create(SegmentOrder order) {
         return new RouteTree<>(order, Collections.emptyList(), Collections.emptyMap());
     }
 
-    public static class Match<TMethod, TRequest, TResponse> {
+    public static class Match<T> {
         public final Segment segment;
-        public final RouteTree<TMethod, TRequest, TResponse> child;
+        public final RouteTree<T> child;
         public final int endedAt;
 
-        public Match(Segment segment, RouteTree<TMethod, TRequest, TResponse> child, int endedAt) {
+        public Match(Segment segment, RouteTree<T> child, int endedAt) {
             this.segment = segment;
             this.child = child;
             this.endedAt = endedAt;

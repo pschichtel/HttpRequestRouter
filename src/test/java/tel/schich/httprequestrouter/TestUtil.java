@@ -32,6 +32,8 @@ import static java.util.Arrays.asList;
 
 public class TestUtil {
 
+    public static final String GET = "GET";
+
     public static Segment stat(String content) {
         return new StaticSegment(content);
     }

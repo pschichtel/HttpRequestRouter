@@ -24,11 +24,11 @@ package tel.schich.httprequestrouter;
 
 import tel.schich.httprequestrouter.segment.Segment;
 
-public class RouteSegment<TMethod, TRequest, TResponse> {
+public class RouteSegment<T> {
     public final Segment segment;
-    public final RouteTree<TMethod, TRequest, TResponse> subTree;
+    public final RouteTree<T> subTree;
 
-    public RouteSegment(Segment segment, RouteTree<TMethod, TRequest, TResponse> subTree) {
+    public RouteSegment(Segment segment, RouteTree<T> subTree) {
         this.segment = segment;
         this.subTree = subTree;
     }
